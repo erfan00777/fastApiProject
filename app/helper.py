@@ -7,51 +7,65 @@ from app.config import (
     CLICKHOUSE_DATABASE
 )
 
+# Connection pool variables
+pool_size = 5
+connection_pool = []
 
-client = None
 
 def create_client():
+    global connection_pool
 
-    global client
-    if client is None:
+    if len(connection_pool) < pool_size:
         client = clickhouse_connect.get_client(
-                                    host=CLICKHOUSE_HOST,
-                                    port=CLICKHOUSE_PORT,
-                                    username=CLICKHOUSE_USER,
-                                    password=CLICKHOUSE_PASSWORD,
-                                    database=CLICKHOUSE_DATABASE
-                                    # pool_min_size=5,
-                                    # pool_max_size=20
+            host=CLICKHOUSE_HOST,
+            port=CLICKHOUSE_PORT,
+            username=CLICKHOUSE_USER,
+            password=CLICKHOUSE_PASSWORD,
+            database=CLICKHOUSE_DATABASE
         )
-    return client
+        connection_pool.append(client)
+
+
+    return connection_pool.pop(0)
+
+
+def release_client(client):
+
+    global connection_pool
+    connection_pool.append(client)
 
 
 def create_table():
-
     client = create_client()
 
     create_table_query = f"""
     CREATE TABLE IF NOT EXISTS user_view (
-        user_id Int32,
-        created_at DateTime,
-        page_url String
-    ) ENGINE = ReplacingMergeTree()
-    PARTITION BY toYYYYMM(created_at)
-    ORDER BY (user_id, created_at)
-    SETTINGS index_granularity = 8192
+    request_id String,
+    user_id Int32,
+    created_at DateTime,
+    page_url String
+) ENGINE = ReplacingMergeTree()
+PARTITION BY toYYYYMM(created_at)
+ORDER BY (request_id)  
+SETTINGS index_granularity = 8192;
     """
 
     client.command(create_table_query)
+    release_client(client)
 
 
 def execute_query(query: str, params: tuple = ()):
+    client = create_client()
+    result = client.execute(query, params)
+    release_client(client)
+    return result
 
-    return create_client().execute(query, params)
 
-def close_client():
-
-    global client
-    if client:
+def close_clients():
+    global connection_pool
+    for client in connection_pool:
         client.close()
-        client = None
+    connection_pool = []
+
+
 
