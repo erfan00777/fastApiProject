@@ -47,7 +47,31 @@ def create_table():
 ) ENGINE = ReplacingMergeTree()
 PARTITION BY toYYYYMM(created_at)
 ORDER BY (request_id)  
-SETTINGS index_granularity = 8192;
+SETTINGS index_granularity = 8192, deduplicate_merge_projection_mode = 'drop';
+    """
+
+    client.command(create_table_query)
+    release_client(client)
+
+## TTL created_at + INTERVAL 24 HOUR;  -- TTL set to 24 hours
+
+
+def alter_table():
+    client = create_client()
+
+    create_table_query = f"""
+    ALTER TABLE user_view 
+    ADD PROJECTION user_page_view_projection 
+    (   
+    SELECT 
+        user_id, 
+        page_url, 
+        COUNT(*) AS page_view_count 
+    GROUP BY 
+        user_id, 
+        page_url
+    );
+
     """
 
     client.command(create_table_query)
