@@ -31,7 +31,7 @@ async def read_request(user_id: int):
     page_url, 
     COUNT(*) AS page_view_count 
     FROM 
-    user_view 
+    user_view Final
     WHERE 
     user_id =  %s
     AND created_at >= now() - INTERVAL 24 HOUR 
