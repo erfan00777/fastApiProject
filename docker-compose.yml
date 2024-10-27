@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    image: fastapi_app:latest
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - clickhouse
+    env_file:
+      - .env
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    container_name: clickhouse
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_DEFAULT_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+
+volumes:
+  clickhouse_data:

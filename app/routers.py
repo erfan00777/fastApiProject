@@ -6,8 +6,6 @@ from app.models import RequestSchema, ResponseSchema
 router = APIRouter()
 
 
-# create_table()
-# alter_table()
 
 @router.post("/api/traffic/{request_id}", status_code=201)
 async def write_request(request_id: str, request: RequestSchema):
