@@ -23,10 +23,9 @@ This project is a FastAPI application that interacts with a ClickHouse database 
    ```bash
    sudo docker build -t "your_tag" .
 
-
-4. run container:
+4. run docker-compose:
    ```bash
-   sudo docker run -d "your_image" 
+   sudo docker-compose up -d 
    
 ### POST /api/traffic/{request_id}
 Insert a page view record.
