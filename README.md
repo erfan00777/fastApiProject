@@ -26,9 +26,22 @@ This project is a FastAPI application that interacts with a ClickHouse database 
 4. run docker-compose:
    ```bash
    sudo docker-compose up -d 
-   
+
+### write   
 ### POST /api/traffic/{request_id}
 Insert a page view record.
+
+**Request Body:**
+
+{
+  "user_id": 10,
+  "created_at": "2024-10-26T12:00:00",
+  "page_url": "http://example.com/page1"
+}
+
+### update   
+### POST /api/traffic/{request_id}
+update a page view record.
 
 **Request Body:**
 
