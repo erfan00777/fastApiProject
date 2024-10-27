@@ -53,37 +53,37 @@ SETTINGS index_granularity = 8192, deduplicate_merge_projection_mode = 'drop';
     client.command(create_table_query)
     release_client(client)
 
-## TTL created_at + INTERVAL 24 HOUR;  -- TTL set to 24 hours
-
+##Can use TTL created_at + INTERVAL 24 HOUR;  -- TTL set to 24 hours
 
 def alter_table():
     client = create_client()
 
-    create_table_query = f"""
-    ALTER TABLE user_view 
-    ADD PROJECTION user_page_view_projection 
-    (   
-    SELECT 
-        user_id, 
-        page_url, 
-        COUNT(*) AS page_view_count 
-    GROUP BY 
-        user_id, 
-        page_url
-    );
-
+    check_projection_query = """
+    SELECT count() 
+    FROM system.projections 
+    WHERE database = 'default' AND table = 'user_view' AND name = 'user_page_view_projection'
     """
 
-    client.command(create_table_query)
+    projection_exists = read_query(check_projection_query)
+
+    if projection_exists[0][0] == 0:
+        create_projection_query = """
+        ALTER TABLE user_view 
+        ADD PROJECTION user_page_view_projection 
+        (   
+            SELECT 
+                user_id, 
+                page_url, 
+                COUNT(*) AS page_view_count 
+            GROUP BY 
+                user_id, 
+                page_url
+        )
+        """
+        client.command(create_projection_query)
+
     release_client(client)
 
-
-# def read_query(query: str):
-#
-#     client = create_client()
-#     result = client.query(query)
-#     release_client(client)
-#     return result
 
 def read_query(query: str):
     client = create_client()
