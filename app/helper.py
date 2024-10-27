@@ -78,11 +78,27 @@ def alter_table():
     release_client(client)
 
 
-def execute_query(query: str, params: tuple = ()):
+# def read_query(query: str):
+#
+#     client = create_client()
+#     result = client.query(query)
+#     release_client(client)
+#     return result
+
+def read_query(query: str):
     client = create_client()
-    result = client.execute(query, params)
+    try:
+        result = client.query(query)
+        rows = result.result_rows
+    finally:
+        release_client(client)
+    return rows
+
+def write_query(query: str):
+
+    client = create_client()
+    client.command(query)
     release_client(client)
-    return result
 
 
 def close_clients():

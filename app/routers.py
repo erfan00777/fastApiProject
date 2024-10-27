@@ -13,12 +13,15 @@ router = APIRouter()
 async def write_request(request_id: str, request: RequestSchema):
     query = """
     INSERT INTO user_view (request_id, user_id, created_at, page_url)
-    VALUES (%s, %s, %s, %s)
+    VALUES
     """
-    params = (request_id, request.user_id, request.created_at, request.page_url)
+    # Use formatted values
+    values = f"('{request_id}', {request.user_id}, '{request.created_at}', '{request.page_url}')"
+
+    full_query = query + values
 
     try:
-        execute_query(query, params)
+        write_query(full_query)
         return {"message": "Data inserted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -26,22 +29,15 @@ async def write_request(request_id: str, request: RequestSchema):
 
 @router.get("/api/traffic/report/{user_id}", response_model=List[ResponseSchema])
 async def read_request(user_id: int):
-    query = """    
-    SELECT 
-    page_url, 
-    COUNT(*) AS page_view_count 
-    FROM 
-    user_view Final
-    WHERE 
-    user_id =  %s
+    query = (f"""    
+    SELECT page_url, COUNT(*) AS page_view_count 
+    FROM user_view Final 
+    WHERE user_id =  {user_id}
     AND created_at >= now() - INTERVAL 24 HOUR 
-    GROUP BY 
-    page_url;
-    """
-    params = (user_id,)
-
+    GROUP BY page_url
+    """)
     try:
-        results = execute_query(query, params)
+        results = read_query(query)
         return [{"url": row[0], "count": row[1]} for row in results]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
