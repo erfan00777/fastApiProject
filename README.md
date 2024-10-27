@@ -51,6 +51,7 @@ update a page view record.
   "page_url": "http://example.com/page1"
 }
 
+### read
 ### GET /api/traffic/report/{user_id}
 Retrieve the page view counts for a specific user over the last 24 hours.
 
